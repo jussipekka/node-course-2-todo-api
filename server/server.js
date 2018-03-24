@@ -102,7 +102,7 @@ app.post('/users', (req, res) => {
   user.save().then(() => {
     return user.generateAuthToken();
 }).then((token) => {
-  res.header('x-auth', token).send(user)
+  res.header('x-auth', token).send(user);
 }).catch((e) => {
     res.status(400).send(e);
   });
@@ -112,6 +112,21 @@ app.post('/users', (req, res) => {
 
 app.get('/users/me', authenticate, (req, res) => {
   res.send(req.user);
+});
+
+
+app.post('/users/login', (req, res, next) => {
+  var body = _.pick(req.body, ['email', 'password']);
+
+  User.findByCrendentials(body.email, body.password).then((user) => {
+    return user.generateAuthToken().then((token) => {
+      res.header('x-auth', token).send(user)
+    })
+  }).catch((e) => {
+    res.status(400).send();
+  })
+
+
 });
 
 
