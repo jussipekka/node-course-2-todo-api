@@ -16,9 +16,10 @@ const port = process.env.PORT;
 app.use(bodyParser.json());
 
 
-app.post('/todos', (req, res, next) => {
+app.post('/todos',authenticate, (req, res, next) => {
   var todo = new Todo({
-    text: req.body.text
+    text: req.body.text,
+    _creator: req.user._id
   });
 
   todo.save().then((doc) => {
@@ -28,21 +29,26 @@ app.post('/todos', (req, res, next) => {
   });
 });
 
-app.get('/todos', (req, res, next) => {
-  Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res, next) => {
+  Todo.find({
+    _creator: req.user._id
+  }).then((todos) => {
     res.send({todos});
   }, (e) => {
     res.status(400).send(e);
   });
 });
 
-app.get('/todos/:id', (req, res, next) => {
+app.get('/todos/:id', authenticate, (req, res, next) => {
   var id = req.params.id;
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
 
-  Todo.findById(id).then((todo) => {
+  Todo.findOne({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
@@ -52,13 +58,16 @@ app.get('/todos/:id', (req, res, next) => {
   });
 });
 
-app.delete('/todos/:id', (req, res, next) => {
+app.delete('/todos/:id', authenticate, (req, res, next) => {
   var id = req.params.id;
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
 
-  Todo.findByIdAndRemove(id).then((todo) => {
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
@@ -68,7 +77,7 @@ app.delete('/todos/:id', (req, res, next) => {
   });
 });
 
-app.patch('/todos/:id', (req, res, next) => {
+app.patch('/todos/:id', authenticate, (req, res, next) => {
   var id = req.params.id;
   var body = _.pick(req.body, ['text', 'completed']);
 
@@ -83,7 +92,7 @@ app.patch('/todos/:id', (req, res, next) => {
     body.completedAt = null;
   }
 
-  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+  Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, {$set: body}, {new: true}).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
@@ -120,7 +129,7 @@ app.post('/users/login', (req, res, next) => {
 
   User.findByCrendentials(body.email, body.password).then((user) => {
     return user.generateAuthToken().then((token) => {
-      res.header('x-auth', token).send(user)
+      res.header('x-auth', token).send(user);
     });
   }).catch((e) => {
     res.status(400).send();
