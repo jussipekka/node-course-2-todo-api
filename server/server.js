@@ -25,7 +25,7 @@ app.post('/todos', (req, res, next) => {
     res.send(doc);
   }, (e) => {
     res.status(400).send(e);
-  })
+  });
 });
 
 app.get('/todos', (req, res, next) => {
@@ -39,14 +39,14 @@ app.get('/todos', (req, res, next) => {
 app.get('/todos/:id', (req, res, next) => {
   var id = req.params.id;
   if (!ObjectID.isValid(id)) {
-     return res.status(404).send();
-   }
+    return res.status(404).send();
+  }
 
   Todo.findById(id).then((todo) => {
-     if (!todo) {
-       return res.status(404).send();
-     }
-     res.send({todo});
+    if (!todo) {
+      return res.status(404).send();
+    }
+    res.send({todo});
   }).catch((e) => {
     res.status(400).send();
   });
@@ -121,10 +121,10 @@ app.post('/users/login', (req, res, next) => {
   User.findByCrendentials(body.email, body.password).then((user) => {
     return user.generateAuthToken().then((token) => {
       res.header('x-auth', token).send(user)
-    })
+    });
   }).catch((e) => {
     res.status(400).send();
-  })
+  });
 
 
 });
