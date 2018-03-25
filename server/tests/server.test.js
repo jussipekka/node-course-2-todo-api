@@ -257,7 +257,7 @@ describe('POST /users', () => {
       .end(done);
   });
 
-})
+});
 
 
 describe('POST /users/login', () => {
@@ -310,9 +310,6 @@ describe('POST /users/login', () => {
           done();
         }).catch((e) => done(e));
       });
-
-
-
 
   });
 
